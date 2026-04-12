@@ -11,10 +11,13 @@ type Handlers struct {
 	OnReady             []func(data *types.ReadyEventData)
 	OnMessageCreate     []func(data *types.MessageEventData)
 	OnMessageUpdate     []func(data *types.MessageEventData)
+	OnMessageDelete     []func(data *types.MessageDeleteEventData)
 	OnGuildMembersChunk []func(data *types.GuildMembersChunkEventData)
+	OnTypingStart       []func(data *types.TypingStartEventData)
+	OnPresenceUpdate    []func(data *types.PresenceUpdateEventData)
 	OnReconnect         []func()
-	mutex               sync.Mutex
 	OnInvalidated       []func()
+	mutex               sync.Mutex
 }
 
 func (handlers *Handlers) Add(event string, function any) error {
@@ -39,6 +42,24 @@ func (handlers *Handlers) Add(event string, function any) error {
 	case types.GatewayEventMessageUpdate:
 		if function, ok := function.(func(data *types.MessageEventData)); ok {
 			handlers.OnMessageUpdate = append(handlers.OnMessageUpdate, function)
+		} else {
+			failed = true
+		}
+	case types.GatewayEventMessageDelete:
+		if function, ok := function.(func(data *types.MessageDeleteEventData)); ok {
+			handlers.OnMessageDelete = append(handlers.OnMessageDelete, function)
+		} else {
+			failed = true
+		}
+	case types.GatewayEventTypingStart:
+		if function, ok := function.(func(data *types.TypingStartEventData)); ok {
+			handlers.OnTypingStart = append(handlers.OnTypingStart, function)
+		} else {
+			failed = true
+		}
+	case types.GatewayEventPresenceUpdate:
+		if function, ok := function.(func(data *types.PresenceUpdateEventData)); ok {
+			handlers.OnPresenceUpdate = append(handlers.OnPresenceUpdate, function)
 		} else {
 			failed = true
 		}

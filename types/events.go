@@ -6,6 +6,25 @@ type Opcode struct {
 	Op int `json:"op"`
 }
 
+type TypingStartEventData struct {
+	ChannelID string `json:"channel_id"`
+	GuildID   string `json:"guild_id"`
+	UserID    string `json:"user_id"`
+	Timestamp int64  `json:"timestamp"`
+}
+
+type MessageDeleteEventData struct {
+	ID        string `json:"id"`
+	ChannelID string `json:"channel_id"`
+	GuildID   string `json:"guild_id"`
+}
+
+type PresenceUpdateEventData struct {
+	User    User   `json:"user"`
+	GuildID string `json:"guild_id"`
+	Status  string `json:"status"`
+}
+
 type HelloEvent struct {
 	Opcode
 	D struct {
@@ -75,7 +94,6 @@ type SuperProperties struct {
 	ClientEventSource      any    `json:"client_event_source"`
 }
 
-// https://discord.com/developers/docs/topics/gateway-events#payload-structure
 type DefaultEvent struct {
 	Op int    `json:"op"`
 	T  string `json:"t,omitempty"`
@@ -100,13 +118,28 @@ type MessageEvent struct {
 	Op int              `json:"op"`
 	D  MessageEventData `json:"d"`
 }
+
 type MemberEvent struct {
 	Op int                        `json:"op"`
 	D  GuildMembersChunkEventData `json:"d"`
 }
 
+type MessageDeleteEvent struct {
+	Op int                    `json:"op"`
+	D  MessageDeleteEventData `json:"d"`
+}
+
+type TypingStartEvent struct {
+	Op int                  `json:"op"`
+	D  TypingStartEventData `json:"d"`
+}
+
+type PresenceUpdateEvent struct {
+	Op int                     `json:"op"`
+	D  PresenceUpdateEventData `json:"d"`
+}
+
 type MessageEventData struct {
-	// Data is in different struct because it needs to be recursive
 	MessageData
 	ReferencedMessage MessageData `json:"referenced_message"`
 }
@@ -151,6 +184,7 @@ type GuildMembersChunkEventData struct {
 	ChunkIndex int    `json:"chunk_index"`
 	ChunkCount int    `json:"chunk_count"`
 }
+
 type MessageData struct {
 	ID                string             `json:"id"`
 	ChannelID         string             `json:"channel_id"`
@@ -193,6 +227,7 @@ type Attachment struct {
 	Placeholder        string `json:"placeholder"`
 	PlaceholderVersion int    `json:"placeholder_version"`
 }
+
 type MessageReference struct {
 	ChannelID string `json:"channel_id"`
 	MessageID string `json:"message_id"`

@@ -338,14 +338,10 @@ func (gateway *Gateway) reconnect() error {
 func (gateway *Gateway) callHandlers(msg []byte, event types.DefaultEvent) error {
 	switch event.Op {
 	case types.OpcodeDispatch:
-
 		switch event.T {
 		case types.EventNameMessageCreate:
 			var data types.MessageEvent
-
-			err := json.Unmarshal(msg, &data)
-
-			if err != nil {
+			if err := json.Unmarshal(msg, &data); err != nil {
 				return err
 			}
 			for _, handler := range gateway.Handlers.OnMessageCreate {
@@ -353,40 +349,55 @@ func (gateway *Gateway) callHandlers(msg []byte, event types.DefaultEvent) error
 			}
 		case types.EventNameMessageUpdate:
 			var data types.MessageEvent
-
-			err := json.Unmarshal(msg, &data)
-
-			if err != nil {
+			if err := json.Unmarshal(msg, &data); err != nil {
 				return err
 			}
 			for _, handler := range gateway.Handlers.OnMessageUpdate {
 				handler(&data.D)
 			}
+		case types.EventNameMessageDelete:
+			var data types.MessageDeleteEvent
+			if err := json.Unmarshal(msg, &data); err != nil {
+				return err
+			}
+			for _, handler := range gateway.Handlers.OnMessageDelete {
+				handler(&data.D)
+			}
 		case types.EventNameGuildMembersChunk:
 			var data types.MemberEvent
-
-			err := json.Unmarshal(msg, &data)
-
-			if err != nil {
+			if err := json.Unmarshal(msg, &data); err != nil {
 				return err
 			}
 			for _, handler := range gateway.Handlers.OnGuildMembersChunk {
+				handler(&data.D)
+			}
+		case types.EventNameTypingStart:
+			var data types.TypingStartEvent
+			if err := json.Unmarshal(msg, &data); err != nil {
+				return err
+			}
+			for _, handler := range gateway.Handlers.OnTypingStart {
+				handler(&data.D)
+			}
+		case types.EventNamePresenceUpdate:
+			var data types.PresenceUpdateEvent
+			if err := json.Unmarshal(msg, &data); err != nil {
+				return err
+			}
+			for _, handler := range gateway.Handlers.OnPresenceUpdate {
 				handler(&data.D)
 			}
 		}
 	case types.OpcodeHeartbeat:
 		gateway.sendHeartbeat()
 	case types.OpcodeHeartbeatACK:
-
 	case types.OpcodeReconnect:
 		gateway.reconnect()
-
 		for _, handler := range gateway.Handlers.OnReconnect {
 			handler()
 		}
 	case types.OpcodeInvalidSession:
 		gateway.reconnect()
-
 		for _, handler := range gateway.Handlers.OnInvalidated {
 			handler()
 		}

@@ -2,6 +2,7 @@ package discord
 
 import (
 	"fmt"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -60,6 +61,98 @@ func SendTyping(gateway *Gateway, channelID string) bool {
 	req.Header.Set("accept-language", "en-US,en;q=0.9")
 	req.Header.SetUserAgent(gateway.Config.UserAgent)
 	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/typing")
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	return resp.StatusCode() == 204
+}
+
+func DeleteMessage(gateway *Gateway, channelID string, messageID string) bool {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("DELETE")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/messages/" + messageID)
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	return resp.StatusCode() == 204
+}
+
+func EditMessage(gateway *Gateway, channelID string, messageID string, content string) bool {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("PATCH")
+	req.Header.SetContentType("application/json")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/messages/" + messageID)
+	req.SetBodyString(fmt.Sprintf(`{"content":"%s"}`, content))
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	return resp.StatusCode() == 200
+}
+
+func SendMessageWithReply(gateway *Gateway, channelID string, content string, replyMessageID string) bool {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("POST")
+	req.Header.SetContentType("application/json")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/messages")
+	req.SetBodyString(fmt.Sprintf(
+		`{"content":"%s","nonce":"%s","tts":false,"flags":0,"message_reference":{"channel_id":"%s","message_id":"%s"}}`,
+		content, GenerateNonce(), channelID, replyMessageID,
+	))
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	return resp.StatusCode() == 200
+}
+
+func AddReaction(gateway *Gateway, channelID string, messageID string, emoji string) bool {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("PUT")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("content-length", "0")
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/messages/" + messageID + "/reactions/" + emoji + "/@me")
 
 	err := requestClient.Do(req, resp)
 	if err != nil {
