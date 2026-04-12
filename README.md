@@ -13,7 +13,7 @@ discoself is a [Go](https://golang.org/) package that provides low level binding
 This assumes you already have a working Go environment, if not please see
 [this page](https://golang.org/doc/install) first.
 
-`go get` *will always pull the latest tagged release from the main branch.*
+`go get` will always pull the latest tagged release from the main branch.
 
 ```sh
 go get github.com/krishnassh/discoself
