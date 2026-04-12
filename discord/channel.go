@@ -42,3 +42,29 @@ func SendMessage(gateway *Gateway, channelID string, content string) bool {
 		return false
 	}
 }
+
+func SendTyping(gateway *Gateway, channelID string) bool {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("POST")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("content-length", "0")
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.Set("x-discord-timezone", "America/Denver")
+	req.Header.Set("x-debug-options", "bugReporterEnabled")
+	req.Header.Set("accept", "*/*")
+	req.Header.Set("accept-language", "en-US,en;q=0.9")
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/typing")
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	return resp.StatusCode() == 204
+}
