@@ -1,4 +1,4 @@
-package selfcord
+package discoself
 
 import (
 	"github.com/krishnassh/discoself/discord"

@@ -4,7 +4,7 @@
 [![GoDoc](https://godoc.org/github.com/krishnassh/discoself?status.svg)](https://godoc.org/github.com/krishnassh/discoself)
 ![Lines of Code](https://img.shields.io/github/languages/code-size/krishnassh/discoself)
 
-- [discoself](#selfcord)
+- [discoself](#discoself)
   - [Features](#features)
   - [Installation](#installation)
 
