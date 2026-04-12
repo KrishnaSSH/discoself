@@ -14,12 +14,12 @@ type Config struct {
 
 var DefaultConfig = Config{
 	Presence:       "offline",
-	ApiVersion:     "9",
+	ApiVersion:     "10",
 	Browser:        "Chrome",
-	BrowserVersion: "124.0.0.0",
+	BrowserVersion: "135.0.0.0",
 	Capabilities:   4093,
 	Device:         "",
 	Os:             "",
 	OsVersion:      "",
-	UserAgent:      "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+	UserAgent:      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
 }
