@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	JS_FILE_REGEX    = regexp.MustCompile(`<script src=\"(/assets/\d{4,5}\.[^\"]+\.js)\" defer></script>`)
-	BUILD_INFO_REGEX = regexp.MustCompile(`Build Number: \"\).concat\(\"(\d+)\"`)
+	JS_FILE_REGEX    = regexp.MustCompile(`src="(/assets/[^"]+\.js)"`)
+	BUILD_INFO_REGEX = regexp.MustCompile(`build_number:"(\d+)"`)
 )
 
 func getLatestBuild() (string, error) {
@@ -30,25 +30,29 @@ func getLatestBuild() (string, error) {
 		fmt.Println("build number not found, falling back to 9999")
 		return "9999", nil
 	}
+
 	for _, match := range matches {
-		fmt.Println(match)
-		if len(match) < 2 {
+		if len(match) < 2 || match[1] == "" {
 			continue
 		}
 		asset := match[1]
-		if asset == "" {
+
+		jsReq := fasthttp.AcquireRequest()
+		jsResp := fasthttp.AcquireResponse()
+		jsReq.Header.SetMethod(fasthttp.MethodGet)
+		jsReq.SetRequestURI(fmt.Sprintf("https://discord.com%s", asset))
+		if err := requestClient.Do(jsReq, jsResp); err != nil {
+			fasthttp.ReleaseRequest(jsReq)
+			fasthttp.ReleaseResponse(jsResp)
 			continue
 		}
-		req.Header.SetMethod(fasthttp.MethodGet)
-		req.SetRequestURI(fmt.Sprintf("https://discord.com%s", asset))
-		if err := requestClient.Do(req, resp); err != nil {
-			continue
+		m := BUILD_INFO_REGEX.FindStringSubmatch(string(jsResp.Body()))
+		fasthttp.ReleaseRequest(jsReq)
+		fasthttp.ReleaseResponse(jsResp)
+
+		if len(m) >= 2 {
+			return m[1], nil
 		}
-		match := BUILD_INFO_REGEX.FindStringSubmatch(string(resp.Body()))
-		if len(match) < 2 {
-			continue
-		}
-		return match[1], nil
 	}
 
 	fmt.Println("build number not found, falling back to 9999")
