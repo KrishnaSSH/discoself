@@ -35,7 +35,7 @@ func GenerateSessionID() string {
 	chars := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 	length := 16
 	var b strings.Builder
-	for i := 0; i < length; i++ {
+	for range length {
 		b.WriteRune(chars[r.Intn(len(chars))])
 	}
 	return b.String()
