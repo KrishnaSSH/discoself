@@ -1,6 +1,8 @@
 package discoself
 
 import (
+	"strings"
+
 	"github.com/krishnassh/discoself/discord"
 	"github.com/krishnassh/discoself/types"
 )
@@ -12,9 +14,9 @@ type Client struct {
 }
 
 func NewClient(token string, config *types.Config) *Client {
+	token = strings.TrimSpace(token)
 	selfbot := discord.Selfbot{Token: token}
 	gateway := discord.CreateGateway(&selfbot, config)
-
 	return &Client{&selfbot, gateway, config}
 }
 

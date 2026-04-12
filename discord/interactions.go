@@ -118,9 +118,12 @@ func SendSlashCommand(gateway *Gateway, channelID string, guildID string, comman
 	req.Header.SetUserAgent(gateway.Config.UserAgent)
 	req.SetRequestURI("https://discord.com/api/v9/interactions")
 	req.SetBodyString(fmt.Sprintf(
-		`{"type":2,"application_id":"%s","guild_id":"%s","channel_id":"%s","session_id":"%s","nonce":"%s","data":{"version":"%s","id":"%s","name":"%s","type":1,"options":[]}}`,
-		command.ApplicationID, guildID, channelID, sessionID, GenerateNonce(), command.Version, command.ID, command.Name,
-	))
+    `{"type":2,"application_id":"%s","guild_id":"%s","channel_id":"%s","session_id":"%s","nonce":"%s","data":{"version":"%s","id":"%s","name":"%s","type":1,"options":[],"application_command":{"id":"%s","type":1,"application_id":"%s","version":"%s","name":"%s","description":"%s","dm_permission":true,"options":[],"integration_types":[0]},"attachments":[]},"analytics_location":"slash_ui"}`,
+    command.ApplicationID, guildID, channelID, sessionID, GenerateNonce(),
+    command.Version, command.ID, command.Name,
+    command.ID, command.ApplicationID, command.Version, command.Name, command.Description,
+))
+	
 
 	err := requestClient.Do(req, resp)
 	if err != nil {
