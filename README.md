@@ -1,4 +1,5 @@
-# discoself
+## discoself
+![](assets/hero.png)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/krishnassh/discoself)](https://goreportcard.com/report/github.com/krishnassh/discoself)
 [![GoDoc](https://godoc.org/github.com/krishnassh/discoself?status.svg)](https://godoc.org/github.com/krishnassh/discoself)
