@@ -4,7 +4,10 @@
 
 # discoself
 
-[![Go Reference](https://img.shields.io/badge/Go%20Reference-pkg.go.dev-00ADD8?logo=go&logoColor=white)](https://pkg.go.dev/github.com/krishnassh/discoself) [![Go Report Card](https://img.shields.io/badge/Go%20Report-A+-brightgreen?logo=go&logoColor=white)](https://goreportcard.com/report/github.com/krishnassh/discoself) [![Code Size](https://img.shields.io/github/languages/code-size/krishnassh/discoself?label=code%20size&logo=github&color=blue)](https://github.com/krishnassh/discoself)
+[![Go Reference](https://img.shields.io/badge/Go%20Reference-pkg.go.dev-00ADD8?logo=go&logoColor=white)](https://pkg.go.dev/github.com/krishnassh/discoself)
+[![Go Report Card](https://img.shields.io/badge/Go%20Report-A+-brightgreen?logo=go&logoColor=white)](https://goreportcard.com/report/github.com/krishnassh/discoself)
+[![Code Size](https://img.shields.io/github/languages/code-size/krishnassh/discoself?label=code%20size&logo=github&color=blue)](https://github.com/krishnassh/discoself)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/hVGCFanfMC)
 
 
 discoself is a [Go](https://golang.org/) package that provides low level bindings to the [Discord](https://discord.com/) client API for selfbots. it is a hard fork of an unmaintained project [discordgo-self](https://github.com/QuartzWarrior/discordgo-self).
