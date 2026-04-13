@@ -17,6 +17,8 @@ exported functions and types are documented here.
 - [types/config.go](#typesconfiggo)
 - [types/events.go](#typeseventgo)
 - [types/discord.go](#typesdiscordgo)
+- [discord/guild.go](#discordguildgo)
+- [discord/user.go](#discordusergo)
 
 ---
 
@@ -195,7 +197,506 @@ Adds a reaction to a message. For Unicode emoji pass the character directly. For
 
 ```go
 client.AddReaction("1234567890123456789", "1122334455667788990", "🐢")
-client.AddReaction("1234567890123456789", "1122334455667788990", "myemoji:9988776655443322110")
+```
+
+---
+
+### `RemoveReaction`
+
+```go
+func (client *Client) RemoveReaction(channelID string, messageID string, emoji string) bool
+```
+
+Removes your own reaction from a message. Returns `true` on success.
+
+```go
+client.RemoveReaction("1234567890123456789", "1122334455667788990", "turtle:9988776655443322110")
+```
+
+---
+
+### `DeleteAllReactions`
+
+```go
+func (client *Client) DeleteAllReactions(channelID string, messageID string) bool
+```
+
+Removes all reactions from a message. Returns `true` on success.
+
+```go
+client.DeleteAllReactions("1234567890123456789", "1122334455667788990")
+```
+
+---
+
+### `GetChannel`
+
+```go
+func (client *Client) GetChannel(channelID string) (types.Channel, error)
+```
+
+Fetches a channel by ID. Returns the `types.Channel` struct or an error.
+
+```go
+channel, err := client.GetChannel("1234567890123456789")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(channel.Name)
+```
+
+---
+
+### `GetMessage`
+
+```go
+func (client *Client) GetMessage(channelID string, messageID string) (types.MessageData, error)
+```
+
+Fetches a single message by ID. Returns the `types.MessageData` or an error.
+
+```go
+msg, err := client.GetMessage("1234567890123456789", "1122334455667788990")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(msg.Content)
+```
+
+---
+
+### `GetMessages`
+
+```go
+func (client *Client) GetMessages(channelID string, limit int) ([]types.MessageData, error)
+```
+
+Fetches up to 100 messages from a channel. Pass limit 1-100. Returns a slice of `types.MessageData` or an error.
+
+```go
+msgs, err := client.GetMessages("1234567890123456789", 50)
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+for _, msg := range msgs {
+    fmt.Println(msg.Content)
+}
+```
+
+---
+
+### `GetPinnedMessages`
+
+```go
+func (client *Client) GetPinnedMessages(channelID string) ([]types.MessageData, error)
+```
+
+Fetches all pinned messages in a channel. Returns a slice of `types.MessageData` or an error.
+
+```go
+msgs, err := client.GetPinnedMessages("1234567890123456789")
+```
+
+---
+
+### `PinMessage`
+
+```go
+func (client *Client) PinMessage(channelID string, messageID string) bool
+```
+
+Pins a message in a channel. Returns `true` on success.
+
+```go
+client.PinMessage("1234567890123456789", "1122334455667788990")
+```
+
+---
+
+### `UnpinMessage`
+
+```go
+func (client *Client) UnpinMessage(channelID string, messageID string) bool
+```
+
+Unpins a message in a channel. Returns `true` on success.
+
+```go
+client.UnpinMessage("1234567890123456789", "1122334455667788990")
+```
+
+---
+
+### `CreateThread`
+
+```go
+func (client *Client) CreateThread(channelID string, messageID string, name string) (types.Channel, error)
+```
+
+Creates a public thread from an existing message. Returns the created `types.Channel` (thread) or an error.
+
+```go
+thread, err := client.CreateThread("1234567890123456789", "1122334455667788990", "Discussion Thread")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(thread.ID)
+```
+
+---
+
+### `GetSlashCommands`
+
+```go
+func (client *Client) GetSlashCommands(guildID string) (types.ApplicationCommandIndex, error)
+```
+
+Fetches all slash commands available in a guild. See lower-level version in `discord/interactions.go` for details.
+
+---
+
+### `GetUserSlashCommands`
+
+```go
+func (client *Client) GetUserSlashCommands() (types.ApplicationCommandIndex, error)
+```
+
+Fetches slash commands available globally to your user. See lower-level version in `discord/interactions.go` for details.
+
+---
+
+### `SendSlashCommandWithOptions`
+
+```go
+func (client *Client) SendSlashCommandWithOptions(channelID string, guildID string, command types.ApplicationCommand, options []any) bool
+```
+
+Fires a slash command with option values. See lower-level version in `discord/interactions.go` for details.
+
+---
+
+### `ClickButton`
+
+```go
+func (client *Client) ClickButton(e *types.MessageEventData, interactionID string) bool
+```
+
+Clicks a message component button. See lower-level version in `discord/interactions.go` for details.
+
+---
+
+### `GetGuild`
+
+```go
+func (client *Client) GetGuild(guildID string) (types.Guild, error)
+```
+
+Fetches a guild by ID. Returns the `types.Guild` struct or an error.
+
+```go
+guild, err := client.GetGuild("9876543210987654321")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(guild.Name)
+```
+
+---
+
+### `GetGuildChannels`
+
+```go
+func (client *Client) GetGuildChannels(guildID string) ([]types.Channel, error)
+```
+
+Fetches all channels in a guild. Returns a slice of `types.Channel` or an error.
+
+```go
+channels, err := client.GetGuildChannels("9876543210987654321")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+for _, ch := range channels {
+    fmt.Println(ch.Name)
+}
+```
+
+---
+
+### `GetGuildRoles`
+
+```go
+func (client *Client) GetGuildRoles(guildID string) ([]types.Role, error)
+```
+
+Fetches all roles in a guild. Returns a slice of `types.Role` or an error.
+
+```go
+roles, err := client.GetGuildRoles("9876543210987654321")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+for _, role := range roles {
+    fmt.Println(role.Name)
+}
+```
+
+---
+
+### `KickMember`
+
+```go
+func (client *Client) KickMember(guildID string, userID string) error
+```
+
+Kicks a member from a guild. Returns an error if the operation fails.
+
+```go
+err := client.KickMember("9876543210987654321", "111111111111111111")
+if err != nil {
+    fmt.Println("Error:", err)
+}
+```
+
+---
+
+### `BanMember`
+
+```go
+func (client *Client) BanMember(guildID string, userID string, deleteMessageSeconds int) error
+```
+
+Bans a member from a guild. `deleteMessageSeconds` sets how many seconds of messages to delete (0 to 604800). Returns an error if the operation fails.
+
+```go
+err := client.BanMember("9876543210987654321", "111111111111111111", 86400) // Delete 1 day of messages
+if err != nil {
+    fmt.Println("Error:", err)
+}
+```
+
+---
+
+### `UnbanMember`
+
+```go
+func (client *Client) UnbanMember(guildID string, userID string) error
+```
+
+Removes a ban from a user in a guild. Returns an error if the operation fails.
+
+```go
+err := client.UnbanMember("9876543210987654321", "111111111111111111")
+```
+
+---
+
+### `AddRole`
+
+```go
+func (client *Client) AddRole(guildID string, userID string, roleID string) error
+```
+
+Adds a role to a guild member. Returns an error if the operation fails.
+
+```go
+err := client.AddRole("9876543210987654321", "111111111111111111", "222222222222222222")
+```
+
+---
+
+### `RemoveRole`
+
+```go
+func (client *Client) RemoveRole(guildID string, userID string, roleID string) error
+```
+
+Removes a role from a guild member. Returns an error if the operation fails.
+
+```go
+err := client.RemoveRole("9876543210987654321", "111111111111111111", "222222222222222222")
+```
+
+---
+
+### `LeaveGuild`
+
+```go
+func (client *Client) LeaveGuild(guildID string) bool
+```
+
+Leaves a guild. Returns `true` on success.
+
+```go
+client.LeaveGuild("9876543210987654321")
+```
+
+---
+
+### `SetSlowmode`
+
+```go
+func (client *Client) SetSlowmode(channelID string, seconds int) bool
+```
+
+Sets the slowmode delay (in seconds) for a channel. Pass 0 to disable. Returns `true` on success.
+
+```go
+client.SetSlowmode("1234567890123456789", 5) // 5 second slowmode
+```
+
+---
+
+### `GetUser`
+
+```go
+func (client *Client) GetUser(userID string) (types.User, error)
+```
+
+Fetches a user's profile by ID. Returns the `types.User` struct or an error.
+
+```go
+user, err := client.GetUser("111111111111111111")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(user.Username)
+```
+
+---
+
+### `GetProfile`
+
+```go
+func (client *Client) GetProfile(userID string, guildID string) (types.User, error)
+```
+
+Fetches the full profile of a user in a guild context. Returns the `types.User` struct or an error.
+
+```go
+user, err := client.GetProfile("111111111111111111", "9876543210987654321")
+```
+
+---
+
+### `ModifyUsername`
+
+```go
+func (client *Client) ModifyUsername(username string, password string) bool
+```
+
+Changes the account's username. Requires the account password. Returns `true` on success.
+
+```go
+client.ModifyUsername("NewUsername", "current_password")
+```
+
+---
+
+### `SetStatus`
+
+```go
+func (client *Client) SetStatus(status string) bool
+```
+
+Sets the online status. Valid values: "online", "idle", "dnd", "invisible". Returns `true` on success.
+
+```go
+client.SetStatus("idle")
+```
+
+---
+
+### `SetCustomStatus`
+
+```go
+func (client *Client) SetCustomStatus(text string, emoji string) bool
+```
+
+Sets a custom status message and optional emoji. Pass an empty string for emoji to set a text-only status. Returns `true` on success.
+
+```go
+client.SetCustomStatus("Working on stuff", "🕳️")
+client.SetCustomStatus("Just text", "")
+```
+
+---
+
+### `ClearCustomStatus`
+
+```go
+func (client *Client) ClearCustomStatus() bool
+```
+
+Removes the custom status. Returns `true` on success.
+
+```go
+client.ClearCustomStatus()
+```
+
+---
+
+### `SetNickname`
+
+```go
+func (client *Client) SetNickname(guildID string, nickname string) bool
+```
+
+Changes the account's nickname in a guild. Pass an empty string to reset the nickname. Returns `true` on success.
+
+```go
+client.SetNickname("9876543210987654321", "MyNickname")
+client.SetNickname("9876543210987654321", "") // Reset nickname
+```
+
+---
+
+### `SendFriendRequest`
+
+```go
+func (client *Client) SendFriendRequest(username string) bool
+```
+
+Sends a friend request to a user by username. Returns `true` on success.
+
+```go
+client.SendFriendRequest("someuser")
+```
+
+---
+
+### `RemoveFriend`
+
+```go
+func (client *Client) RemoveFriend(userID string) bool
+```
+
+Removes a friend or cancels an outgoing friend request by user ID. Returns `true` on success.
+
+```go
+client.RemoveFriend("111111111111111111")
+```
+
+---
+
+### `BlockUser`
+
+```go
+func (client *Client) BlockUser(userID string) bool
+```
+
+Blocks a user by ID. Returns `true` on success.
+
+```go
+client.BlockUser("111111111111111111")
 ```
 
 ---
@@ -283,6 +784,15 @@ discord.DeleteMessage(gateway, channelID, messageID string) bool
 discord.EditMessage(gateway, channelID, messageID, content string) bool
 discord.SendMessageWithReply(gateway, channelID, content, replyMessageID string) bool
 discord.AddReaction(gateway, channelID, messageID, emoji string) bool
+discord.RemoveReaction(gateway, channelID, messageID, emoji string) bool
+discord.DeleteAllReactions(gateway, channelID, messageID string) bool
+discord.GetChannel(gateway, channelID string) (types.Channel, error)
+discord.GetMessage(gateway, channelID, messageID string) (types.MessageData, error)
+discord.GetMessages(gateway, channelID string, limit int) ([]types.MessageData, error)
+discord.GetPinnedMessages(gateway, channelID string) ([]types.MessageData, error)
+discord.PinMessage(gateway, channelID, messageID string) bool
+discord.UnpinMessage(gateway, channelID, messageID string) bool
+discord.CreateThread(gateway, channelID, messageID, name string) (types.Channel, error)
 ```
 
 ---
@@ -619,6 +1129,63 @@ type PresenceUpdateEventData struct {
     GuildID string `json:"guild_id"`
     Status  string `json:"status"`
 }
+```
+
+---
+
+## discord/guild.go
+
+Lower-level guild functions that take a `*discord.Gateway` directly.
+
+```go
+import "github.com/krishnassh/discoself/discord"
+```
+
+All functions mirror their `Client` equivalents but accept `*discord.Gateway` as the first argument.
+
+```go
+discord.GetGuild(gateway, guildID string) (types.Guild, error)
+discord.GetGuildChannels(gateway, guildID string) ([]types.Channel, error)
+discord.GetGuildRoles(gateway, guildID string) ([]types.Role, error)
+discord.KickMember(gateway, guildID, userID string) error
+discord.BanMember(gateway, guildID, userID string, deleteMessageSeconds int) error
+discord.UnbanMember(gateway, guildID, userID string) error
+discord.AddRole(gateway, guildID, userID, roleID string) error
+discord.RemoveRole(gateway, guildID, userID, roleID string) error
+discord.LeaveGuild(gateway, guildID string) bool
+discord.SetSlowmode(gateway, channelID string, seconds int) bool
+```
+
+---
+
+## discord/user.go
+
+Lower-level user functions that take a `*discord.Gateway` directly.
+
+```go
+import "github.com/krishnassh/discoself/discord"
+```
+
+All functions mirror their `Client` equivalents but accept `*discord.Gateway` as the first argument.
+
+```go
+discord.GetUser(gateway, userID string) (types.User, error)
+discord.GetProfile(gateway, userID, guildID string) (types.User, error)
+discord.ModifyUsername(gateway, username, password string) bool
+discord.SetStatus(gateway, status string) bool
+discord.SetCustomStatus(gateway, text, emoji string) bool
+discord.ClearCustomStatus(gateway) bool
+discord.SetNickname(gateway, guildID, nickname string) bool
+discord.SendFriendRequest(gateway, username string) bool
+discord.RemoveFriend(gateway, userID string) bool
+discord.BlockUser(gateway, userID string) bool
+```
+
+Also includes lower-level versions of reaction functions:
+
+```go
+discord.RemoveReaction(gateway, channelID, messageID, emoji string) bool
+discord.DeleteAllReactions(gateway, channelID, messageID string) bool
 ```
 
 ---
