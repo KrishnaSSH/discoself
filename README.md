@@ -39,7 +39,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/krishnassh/discoself/discord"
+	"github.com/krishnassh/discoself"
 	"github.com/krishnassh/discoself/types"
 )
 ```
