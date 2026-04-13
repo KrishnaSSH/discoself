@@ -12,7 +12,7 @@ discord server for support.**
 This assumes you already have a working Go environment setup and that
 discoself is correctly installed on your system.
 
-From within the bump example folder, run the below command to compile the
+From within the autobumper example folder, run the below command to compile the
 example.
 
 ```sh
