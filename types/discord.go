@@ -229,3 +229,8 @@ type ApplicationCommandIndex struct {
 	ApplicationCommand []ApplicationCommand `json:"application_commands"`
 	Version            *string              `json:"version,omitempty"`
 }
+
+type DiscordError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}

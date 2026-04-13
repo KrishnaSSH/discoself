@@ -42,12 +42,16 @@ func (client *Client) SendMessage(channelID string, content string) bool {
 	return discord.SendMessage(client.Gateway, channelID, content)
 }
 
-func (client *Client) DeleteMessage(channelID string, messageID string) bool {
-	return discord.DeleteMessage(client.Gateway, channelID, messageID)
+func (client *Client) SendMessageWithReply(channelID string, content string, replyMessageID string) bool {
+	return discord.SendMessageWithReply(client.Gateway, channelID, content, replyMessageID)
 }
 
 func (client *Client) EditMessage(channelID string, messageID string, content string) bool {
 	return discord.EditMessage(client.Gateway, channelID, messageID, content)
+}
+
+func (client *Client) DeleteMessage(channelID string, messageID string) bool {
+	return discord.DeleteMessage(client.Gateway, channelID, messageID)
 }
 
 func (client *Client) SendTyping(channelID string) bool {
@@ -58,8 +62,36 @@ func (client *Client) AddReaction(channelID string, messageID string, emoji stri
 	return discord.AddReaction(client.Gateway, channelID, messageID, emoji)
 }
 
-func (client *Client) SendMessageWithReply(channelID string, content string, replyMessageID string) bool {
-	return discord.SendMessageWithReply(client.Gateway, channelID, content, replyMessageID)
+func (client *Client) RemoveReaction(channelID string, messageID string, emoji string) bool {
+	return discord.RemoveReaction(client.Gateway, channelID, messageID, emoji)
+}
+
+func (client *Client) DeleteAllReactions(channelID string, messageID string) bool {
+	return discord.DeleteAllReactions(client.Gateway, channelID, messageID)
+}
+
+func (client *Client) GetMessage(channelID string, messageID string) (types.MessageData, error) {
+	return discord.GetMessage(client.Gateway, channelID, messageID)
+}
+
+func (client *Client) GetMessages(channelID string, limit int) ([]types.MessageData, error) {
+	return discord.GetMessages(client.Gateway, channelID, limit)
+}
+
+func (client *Client) GetPinnedMessages(channelID string) ([]types.MessageData, error) {
+	return discord.GetPinnedMessages(client.Gateway, channelID)
+}
+
+func (client *Client) PinMessage(channelID string, messageID string) bool {
+	return discord.PinMessage(client.Gateway, channelID, messageID)
+}
+
+func (client *Client) UnpinMessage(channelID string, messageID string) bool {
+	return discord.UnpinMessage(client.Gateway, channelID, messageID)
+}
+
+func (client *Client) CreateThread(channelID string, messageID string, name string) (types.Channel, error) {
+	return discord.CreateThread(client.Gateway, channelID, messageID, name)
 }
 
 // interactions
@@ -82,6 +114,48 @@ func (client *Client) SendSlashCommandWithOptions(channelID string, guildID stri
 
 func (client *Client) ClickButton(e *types.MessageEventData, interactionID string) bool {
 	return discord.ClickButton(client.Gateway, e, interactionID)
+}
+
+// guild
+
+func (client *Client) GetGuild(guildID string) (types.Guild, error) {
+	return discord.GetGuild(client.Gateway, guildID)
+}
+
+func (client *Client) GetGuildChannels(guildID string) ([]types.Channel, error) {
+	return discord.GetGuildChannels(client.Gateway, guildID)
+}
+
+func (client *Client) GetGuildRoles(guildID string) ([]types.Role, error) {
+	return discord.GetGuildRoles(client.Gateway, guildID)
+}
+
+func (client *Client) KickMember(guildID string, userID string) error {
+	return discord.KickMember(client.Gateway, guildID, userID)
+}
+
+func (client *Client) BanMember(guildID string, userID string, deleteMessageSeconds int) error {
+	return discord.BanMember(client.Gateway, guildID, userID, deleteMessageSeconds)
+}
+
+func (client *Client) UnbanMember(guildID string, userID string) error {
+	return discord.UnbanMember(client.Gateway, guildID, userID)
+}
+
+func (client *Client) AddRole(guildID string, userID string, roleID string) error {
+	return discord.AddRole(client.Gateway, guildID, userID, roleID)
+}
+
+func (client *Client) RemoveRole(guildID string, userID string, roleID string) error {
+	return discord.RemoveRole(client.Gateway, guildID, userID, roleID)
+}
+
+func (client *Client) LeaveGuild(guildID string) bool {
+	return discord.LeaveGuild(client.Gateway, guildID)
+}
+
+func (client *Client) SetSlowmode(channelID string, seconds int) bool {
+	return discord.SetSlowmode(client.Gateway, channelID, seconds)
 }
 
 // user

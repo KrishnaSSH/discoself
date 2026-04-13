@@ -3,6 +3,8 @@ package discord
 import (
 	"fmt"
 
+	"github.com/goccy/go-json"
+	"github.com/krishnassh/discoself/types"
 	"github.com/valyala/fasthttp"
 )
 
@@ -160,4 +162,213 @@ func AddReaction(gateway *Gateway, channelID string, messageID string, emoji str
 		return false
 	}
 	return resp.StatusCode() == 204
+}
+
+// RemoveReaction removes your own reaction from a message.
+func RemoveReaction(gateway *Gateway, channelID string, messageID string, emoji string) bool {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("DELETE")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/messages/" + messageID + "/reactions/" + emoji + "/@me")
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	return resp.StatusCode() == 204
+}
+
+// DeleteAllReactions removes all reactions from a message.
+func DeleteAllReactions(gateway *Gateway, channelID string, messageID string) bool {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("DELETE")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/messages/" + messageID + "/reactions")
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	return resp.StatusCode() == 204
+}
+
+// GetMessage fetches a single message by ID.
+func GetMessage(gateway *Gateway, channelID string, messageID string) (types.MessageData, error) {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("GET")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/messages/" + messageID)
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return types.MessageData{}, err
+	}
+
+	var msg types.MessageData
+	if err = json.Unmarshal(resp.Body(), &msg); err != nil {
+		fmt.Println("Error:", err)
+		return types.MessageData{}, err
+	}
+	return msg, nil
+}
+
+// GetMessages fetches up to 100 messages from a channel. Pass limit 1-100.
+func GetMessages(gateway *Gateway, channelID string, limit int) ([]types.MessageData, error) {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	if limit < 1 {
+		limit = 1
+	} else if limit > 100 {
+		limit = 100
+	}
+
+	req.Header.SetMethod("GET")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI(fmt.Sprintf("https://discord.com/api/v9/channels/%s/messages?limit=%d", channelID, limit))
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil, err
+	}
+
+	var msgs []types.MessageData
+	if err = json.Unmarshal(resp.Body(), &msgs); err != nil {
+		fmt.Println("Error:", err)
+		return nil, err
+	}
+	return msgs, nil
+}
+
+// GetPinnedMessages fetches all pinned messages in a channel.
+func GetPinnedMessages(gateway *Gateway, channelID string) ([]types.MessageData, error) {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("GET")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/pins")
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil, err
+	}
+
+	var msgs []types.MessageData
+	if err = json.Unmarshal(resp.Body(), &msgs); err != nil {
+		fmt.Println("Error:", err)
+		return nil, err
+	}
+	return msgs, nil
+}
+
+// PinMessage pins a message in a channel.
+func PinMessage(gateway *Gateway, channelID string, messageID string) bool {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("PUT")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("content-length", "0")
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/pins/" + messageID)
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	return resp.StatusCode() == 204
+}
+
+// UnpinMessage unpins a message in a channel.
+func UnpinMessage(gateway *Gateway, channelID string, messageID string) bool {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("DELETE")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/pins/" + messageID)
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	return resp.StatusCode() == 204
+}
+
+// CreateThread creates a public thread from an existing message.
+func CreateThread(gateway *Gateway, channelID string, messageID string, name string) (types.Channel, error) {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("POST")
+	req.Header.SetContentType("application/json")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID + "/messages/" + messageID + "/threads")
+	req.SetBodyString(fmt.Sprintf(`{"name":"%s","auto_archive_duration":1440}`, name))
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return types.Channel{}, err
+	}
+
+	var thread types.Channel
+	if err = json.Unmarshal(resp.Body(), &thread); err != nil {
+		fmt.Println("Error:", err)
+		return types.Channel{}, err
+	}
+	return thread, nil
 }

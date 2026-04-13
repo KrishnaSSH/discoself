@@ -8,8 +8,8 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// GetUser fetches a user's profile by ID.
-func GetUser(gateway *Gateway, userID string) (types.User, error) {
+// GetGuild fetches a guild by ID.
+func GetGuild(gateway *Gateway, guildID string) (types.Guild, error) {
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseRequest(req)
@@ -19,29 +19,25 @@ func GetUser(gateway *Gateway, userID string) (types.User, error) {
 	req.Header.Set("authorization", gateway.Selfbot.Token)
 	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
 	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.Set("x-discord-timezone", "America/Denver")
-	req.Header.Set("x-debug-options", "bugReporterEnabled")
-	req.Header.Set("accept", "*/*")
-	req.Header.Set("accept-language", "en-US,en;q=0.9")
 	req.Header.SetUserAgent(gateway.Config.UserAgent)
-	req.SetRequestURI("https://discord.com/api/v9/users/" + userID)
+	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID)
 
 	err := requestClient.Do(req, resp)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return types.User{}, err
+		return types.Guild{}, err
 	}
 
-	var user types.User
-	if err = json.Unmarshal(resp.Body(), &user); err != nil {
+	var guild types.Guild
+	if err = json.Unmarshal(resp.Body(), &guild); err != nil {
 		fmt.Println("Error:", err)
-		return types.User{}, err
+		return types.Guild{}, err
 	}
-	return user, nil
+	return guild, nil
 }
 
-// GetProfile fetches the full profile of a user in a guild context.
-func GetProfile(gateway *Gateway, userID string, guildID string) (types.User, error) {
+// GetGuildChannels fetches all channels in a guild.
+func GetGuildChannels(gateway *Gateway, guildID string) ([]types.Channel, error) {
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseRequest(req)
@@ -51,182 +47,53 @@ func GetProfile(gateway *Gateway, userID string, guildID string) (types.User, er
 	req.Header.Set("authorization", gateway.Selfbot.Token)
 	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
 	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.Set("x-discord-timezone", "America/Denver")
-	req.Header.Set("x-debug-options", "bugReporterEnabled")
-	req.Header.Set("accept", "*/*")
-	req.Header.Set("accept-language", "en-US,en;q=0.9")
 	req.Header.SetUserAgent(gateway.Config.UserAgent)
-	req.SetRequestURI(fmt.Sprintf("https://discord.com/api/v9/users/%s/profile?guild_id=%s", userID, guildID))
+	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/channels")
 
 	err := requestClient.Do(req, resp)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return types.User{}, err
+		return nil, err
 	}
 
-	var user types.User
-	if err = json.Unmarshal(resp.Body(), &user); err != nil {
+	var channels []types.Channel
+	if err = json.Unmarshal(resp.Body(), &channels); err != nil {
 		fmt.Println("Error:", err)
-		return types.User{}, err
+		return nil, err
 	}
-	return user, nil
+	return channels, nil
 }
 
-// ModifyUsername changes the account's username. Requires the account password.
-func ModifyUsername(gateway *Gateway, username string, password string) bool {
+// GetGuildRoles fetches all roles in a guild.
+func GetGuildRoles(gateway *Gateway, guildID string) ([]types.Role, error) {
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseRequest(req)
 	defer fasthttp.ReleaseResponse(resp)
 
-	req.Header.SetMethod("PATCH")
-	req.Header.SetContentType("application/json")
+	req.Header.SetMethod("GET")
 	req.Header.Set("authorization", gateway.Selfbot.Token)
 	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
 	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
 	req.Header.SetUserAgent(gateway.Config.UserAgent)
-	req.SetRequestURI("https://discord.com/api/v9/users/@me")
-	req.SetBodyString(fmt.Sprintf(`{"username":"%s","password":"%s"}`, username, password))
+	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/roles")
 
 	err := requestClient.Do(req, resp)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return false
+		return nil, err
 	}
-	return resp.StatusCode() == 200
-}
 
-// SetStatus sets the online status. Valid values: "online", "idle", "dnd", "invisible".
-func SetStatus(gateway *Gateway, status string) bool {
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse(resp)
-
-	req.Header.SetMethod("PATCH")
-	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
-	req.SetRequestURI("https://discord.com/api/v9/users/@me/settings")
-	req.SetBodyString(fmt.Sprintf(`{"status":"%s"}`, status))
-
-	err := requestClient.Do(req, resp)
-	if err != nil {
+	var roles []types.Role
+	if err = json.Unmarshal(resp.Body(), &roles); err != nil {
 		fmt.Println("Error:", err)
-		return false
+		return nil, err
 	}
-	return resp.StatusCode() == 200
+	return roles, nil
 }
 
-// SetCustomStatus sets a custom status message and optional emoji.
-// Pass an empty string for emoji to set a text-only status.
-func SetCustomStatus(gateway *Gateway, text string, emoji string) bool {
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse(resp)
-
-	req.Header.SetMethod("PATCH")
-	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
-	req.SetRequestURI("https://discord.com/api/v9/users/@me/settings")
-
-	var body string
-	if emoji != "" {
-		body = fmt.Sprintf(`{"custom_status":{"text":"%s","emoji_name":"%s"}}`, text, emoji)
-	} else {
-		body = fmt.Sprintf(`{"custom_status":{"text":"%s"}}`, text)
-	}
-	req.SetBodyString(body)
-
-	err := requestClient.Do(req, resp)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return false
-	}
-	return resp.StatusCode() == 200
-}
-
-// ClearCustomStatus removes the custom status.
-func ClearCustomStatus(gateway *Gateway) bool {
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse(resp)
-
-	req.Header.SetMethod("PATCH")
-	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
-	req.SetRequestURI("https://discord.com/api/v9/users/@me/settings")
-	req.SetBodyString(`{"custom_status":null}`)
-
-	err := requestClient.Do(req, resp)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return false
-	}
-	return resp.StatusCode() == 200
-}
-
-// SetNickname changes the account's nickname in a guild.
-// Pass an empty string to reset the nickname.
-func SetNickname(gateway *Gateway, guildID string, nickname string) bool {
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse(resp)
-
-	req.Header.SetMethod("PATCH")
-	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
-	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/members/@me")
-	req.SetBodyString(fmt.Sprintf(`{"nick":"%s"}`, nickname))
-
-	err := requestClient.Do(req, resp)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return false
-	}
-	return resp.StatusCode() == 200
-}
-
-// SendFriendRequest sends a friend request to a user by username.
-func SendFriendRequest(gateway *Gateway, username string) bool {
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse(resp)
-
-	req.Header.SetMethod("POST")
-	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
-	req.SetRequestURI("https://discord.com/api/v9/users/@me/relationships")
-	req.SetBodyString(fmt.Sprintf(`{"username":"%s","discriminator":null}`, username))
-
-	err := requestClient.Do(req, resp)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return false
-	}
-	return resp.StatusCode() == 204
-}
-
-// RemoveFriend removes a friend or cancels an outgoing friend request by user ID.
-func RemoveFriend(gateway *Gateway, userID string) bool {
+// KickMember kicks a member from a guild.
+func KickMember(gateway *Gateway, guildID string, userID string) error {
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseRequest(req)
@@ -237,18 +104,19 @@ func RemoveFriend(gateway *Gateway, userID string) bool {
 	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
 	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
 	req.Header.SetUserAgent(gateway.Config.UserAgent)
-	req.SetRequestURI("https://discord.com/api/v9/users/@me/relationships/" + userID)
+	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/members/" + userID)
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return false
+	if err := requestClient.Do(req, resp); err != nil {
+		return err
 	}
-	return resp.StatusCode() == 204
+	if resp.StatusCode() != 204 {
+		return parseError(resp)
+	}
+	return nil
 }
 
-// BlockUser blocks a user by ID.
-func BlockUser(gateway *Gateway, userID string) bool {
+// BanMember bans a member from a guild.
+func BanMember(gateway *Gateway, guildID string, userID string, deleteMessageSeconds int) error {
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseRequest(req)
@@ -260,8 +128,101 @@ func BlockUser(gateway *Gateway, userID string) bool {
 	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
 	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
 	req.Header.SetUserAgent(gateway.Config.UserAgent)
-	req.SetRequestURI("https://discord.com/api/v9/users/@me/relationships/" + userID)
-	req.SetBodyString(`{"type":2}`)
+	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/bans/" + userID)
+	req.SetBodyString(fmt.Sprintf(`{"delete_message_seconds":%d}`, deleteMessageSeconds))
+
+	if err := requestClient.Do(req, resp); err != nil {
+		return err
+	}
+	if resp.StatusCode() != 204 {
+		return parseError(resp)
+	}
+	return nil
+}
+
+// UnbanMember removes a ban from a user in a guild.
+func UnbanMember(gateway *Gateway, guildID string, userID string) error {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("DELETE")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/bans/" + userID)
+
+	if err := requestClient.Do(req, resp); err != nil {
+		return err
+	}
+	if resp.StatusCode() != 204 {
+		return parseError(resp)
+	}
+	return nil
+}
+
+// AddRole adds a role to a guild member.
+func AddRole(gateway *Gateway, guildID string, userID string, roleID string) error {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("PUT")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("content-length", "0")
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/members/" + userID + "/roles/" + roleID)
+
+	if err := requestClient.Do(req, resp); err != nil {
+		return err
+	}
+	if resp.StatusCode() != 204 {
+		return parseError(resp)
+	}
+	return nil
+}
+
+// RemoveRole removes a role from a guild member.
+func RemoveRole(gateway *Gateway, guildID string, userID string, roleID string) error {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("DELETE")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/members/" + userID + "/roles/" + roleID)
+
+	if err := requestClient.Do(req, resp); err != nil {
+		return err
+	}
+	if resp.StatusCode() != 204 {
+		return parseError(resp)
+	}
+	return nil
+}
+
+// LeaveGuild leaves a guild.
+func LeaveGuild(gateway *Gateway, guildID string) bool {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("DELETE")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/users/@me/guilds/" + guildID)
 
 	err := requestClient.Do(req, resp)
 	if err != nil {
@@ -269,4 +230,28 @@ func BlockUser(gateway *Gateway, userID string) bool {
 		return false
 	}
 	return resp.StatusCode() == 204
+}
+
+// SetSlowmode sets the slowmode delay (in seconds) for a channel. Pass 0 to disable.
+func SetSlowmode(gateway *Gateway, channelID string, seconds int) bool {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	req.Header.SetMethod("PATCH")
+	req.Header.SetContentType("application/json")
+	req.Header.Set("authorization", gateway.Selfbot.Token)
+	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
+	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
+	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID)
+	req.SetBodyString(fmt.Sprintf(`{"rate_limit_per_user":%d}`, seconds))
+
+	err := requestClient.Do(req, resp)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	return resp.StatusCode() == 200
 }
