@@ -49,10 +49,10 @@ fmt.Println("Logged in as:", e.User.Username)
 }
 ```
 
-See [API Reference](docs/api.md) and Examples below for more detailed information.
+See Examples and API Reference below for more detailed information.
 
 ## Examples
-a list of examples that demonstrate how to use this library can be found [here](examples/examples.md)
+a list of examples that demonstrate how to use this library can be found [here](https://github.com/KrishnaSSH/discoself/tree/main/examples)
 
 ## API Reference
 
