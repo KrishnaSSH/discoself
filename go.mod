@@ -5,7 +5,6 @@ go 1.24.0
 require (
 	github.com/fasthttp/websocket v1.5.12
 	github.com/goccy/go-json v0.10.6
-	github.com/jeandeaual/go-locale v0.0.0-20240223122105-ce5225dcaa49
 	github.com/valyala/fasthttp v1.70.0
 )
 

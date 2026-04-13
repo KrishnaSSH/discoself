@@ -42,11 +42,15 @@ func GenerateSessionID() string {
 }
 
 func GenerateSuperProperties(gateway *Gateway) string {
+	if gateway.superProperties != "" {
+		return gateway.superProperties
+	}
+
 	super := &types.SuperProperties{
 		OS:                     gateway.Config.Os,
 		Browser:                gateway.Config.Browser,
 		Device:                 gateway.Config.Device,
-		SystemLocale:           gateway.Selfbot.User.Locale,
+		SystemLocale:           clientLocale,
 		BrowserUserAgent:       gateway.Config.UserAgent,
 		BrowserVersion:         gateway.Config.BrowserVersion,
 		OSVersion:              gateway.Config.OsVersion,
@@ -58,12 +62,12 @@ func GenerateSuperProperties(gateway *Gateway) string {
 		ClientBuildNumber:      gateway.ClientBuildNumber,
 		ClientEventSource:      nil,
 	}
+
 	jsonData, err := json.Marshal(super)
 	if err != nil {
 		fmt.Println("Error marshalling super properties:", err)
 		return ""
 	}
-	base64Data := base64.StdEncoding.EncodeToString(jsonData)
 
-	return base64Data
+	return base64.StdEncoding.EncodeToString(jsonData)
 }

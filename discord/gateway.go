@@ -26,6 +26,7 @@ type Gateway struct {
 	Selfbot           *Selfbot
 	SessionID         string
 	ClientBuildNumber string
+	superProperties   string // cached, super properties string to avoid re-encoding on every identify
 
 	heartbeatInterval time.Duration
 }
@@ -211,6 +212,8 @@ func (gateway *Gateway) ready() error {
 	gateway.SessionID = ready.D.SessionID
 	gateway.GatewayURL = ready.D.ResumeGatewayURL
 
+	gateway.superProperties = GenerateSuperProperties(gateway)
+
 	for _, handler := range gateway.Handlers.OnReady {
 		handler(&ready.D)
 	}
@@ -223,19 +226,17 @@ func (gateway *Gateway) canReconnect() bool {
 }
 
 func (gateway *Gateway) heartbeatSender() {
-	ticker := time.NewTicker(gateway.heartbeatInterval * time.Millisecond) // Every heartbeat interval (sent in milliseconds).
+	ticker := time.NewTicker(gateway.heartbeatInterval * time.Millisecond)
 	defer ticker.Stop()
 
 	for {
 		select {
-		case <-ticker.C: // On ticker tick.
+		case <-ticker.C:
 			if err := gateway.sendHeartbeat(); err != nil {
 				return
 			}
-		case <-gateway.CloseChan: // If a close is signalled.
+		case <-gateway.CloseChan:
 			return
-		default:
-			time.Sleep(25 * time.Millisecond) // Wait to prevent CPU overload.
 		}
 	}
 }
@@ -408,28 +409,21 @@ func (gateway *Gateway) callHandlers(msg []byte, event types.DefaultEvent) error
 
 func (gateway *Gateway) startHandler() {
 	for {
-		select {
-		case <-gateway.CloseChan:
+		msg, err := gateway.readMessage()
+		if err != nil {
 			return
-		default:
-			msg, err := gateway.readMessage()
+		}
 
-			if err != nil {
-				return // TODO: Log error with some sort of method instead of returning and ending the handler.
-			}
+		var event types.DefaultEvent
+		if err = json.Unmarshal(msg, &event); err != nil {
+			return
+		}
+		if err = gateway.callHandlers(msg, event); err != nil {
+			return
+		}
 
-			var event types.DefaultEvent
-
-			if err = json.Unmarshal(msg, &event); err != nil {
-				return // TODO: Log error with some sort of method instead of returning and ending the handler.
-			}
-			if err = gateway.callHandlers(msg, event); err != nil {
-				return // TODO: Log error with some sort of method instead of returning and ending the handler.
-			}
-
-			if event.S == 0 { // Some payloads, for example the heartbeat ack, don't contribute to the sequence ID.
-				gateway.LastSeq = event.S
-			}
+		if event.S != 0 {
+			gateway.LastSeq = event.S
 		}
 	}
 }
