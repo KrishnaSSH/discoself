@@ -406,8 +406,7 @@ Creates a `*Gateway`. Called internally by `NewClient`. `config` must not be nil
 ```go
 func (gateway *Gateway) Connect() error
 ```
-
-Runs the full connection sequence: dials WebSocket, receives HELLO, starts heartbeat, sends IDENTIFY, waits for READY, then starts the event loop. Called internally by `client.Connect`.
+Runs the full connection sequence: dials WebSocket, receives HELLO, starts heartbeat, sends IDENTIFY or RESUME (if a valid session exists), waits for READY, then starts the event loop. Called internally by `client.Connect`.
 
 ---
 
@@ -495,7 +494,7 @@ Generates a random 16-character alphanumeric session ID. Used internally during 
 func GenerateSuperProperties(gateway *Gateway) string
 ```
 
-Returns a base64-encoded JSON string for the `X-Super-Properties` header. Built from the gateway's config and the logged-in user's locale. Used internally on every API request.
+Returns a base64-encoded JSON string for the `X-Super-Properties` header. Built from the gateway's config and the logged-in user's locale. Used internally. Computed once after login and cached subsequent calls return the cached value.
 
 ---
 
