@@ -32,6 +32,12 @@ func (client *Client) GetMembers(guildId string, memberIds []string) error {
 	return client.Gateway.GetMembers(guildId, memberIds)
 }
 
+func (client *Client) Close() {
+	client.Gateway.Close()
+}
+
+// channel
+
 func (client *Client) SendMessage(channelID string, content string) bool {
 	return discord.SendMessage(client.Gateway, channelID, content)
 }
@@ -56,10 +62,66 @@ func (client *Client) SendMessageWithReply(channelID string, content string, rep
 	return discord.SendMessageWithReply(client.Gateway, channelID, content, replyMessageID)
 }
 
+// interactions
+
+func (client *Client) GetSlashCommands(guildID string) (types.ApplicationCommandIndex, error) {
+	return discord.GetSlashCommands(client.Gateway, guildID)
+}
+
+func (client *Client) GetUserSlashCommands() (types.ApplicationCommandIndex, error) {
+	return discord.GetUserSlashCommands(client.Gateway)
+}
+
 func (client *Client) SendSlashCommand(channelID string, guildID string, command types.ApplicationCommand) bool {
 	return discord.SendSlashCommand(client.Gateway, channelID, guildID, command)
 }
 
-func (client *Client) Close() {
-	client.Gateway.Close()
+func (client *Client) SendSlashCommandWithOptions(channelID string, guildID string, command types.ApplicationCommand, options []any) bool {
+	return discord.SendSlashCommandWithOptions(client.Gateway, channelID, guildID, command, options)
+}
+
+func (client *Client) ClickButton(e *types.MessageEventData, interactionID string) bool {
+	return discord.ClickButton(client.Gateway, e, interactionID)
+}
+
+// user
+
+func (client *Client) GetUser(userID string) (types.User, error) {
+	return discord.GetUser(client.Gateway, userID)
+}
+
+func (client *Client) GetProfile(userID string, guildID string) (types.User, error) {
+	return discord.GetProfile(client.Gateway, userID, guildID)
+}
+
+func (client *Client) ModifyUsername(username string, password string) bool {
+	return discord.ModifyUsername(client.Gateway, username, password)
+}
+
+func (client *Client) SetStatus(status string) bool {
+	return discord.SetStatus(client.Gateway, status)
+}
+
+func (client *Client) SetCustomStatus(text string, emoji string) bool {
+	return discord.SetCustomStatus(client.Gateway, text, emoji)
+}
+
+func (client *Client) ClearCustomStatus() bool {
+	return discord.ClearCustomStatus(client.Gateway)
+}
+
+func (client *Client) SetNickname(guildID string, nickname string) bool {
+	return discord.SetNickname(client.Gateway, guildID, nickname)
+}
+
+func (client *Client) SendFriendRequest(username string) bool {
+	return discord.SendFriendRequest(client.Gateway, username)
+}
+
+func (client *Client) RemoveFriend(userID string) bool {
+	return discord.RemoveFriend(client.Gateway, userID)
+}
+
+func (client *Client) BlockUser(userID string) bool {
+	return discord.BlockUser(client.Gateway, userID)
 }
