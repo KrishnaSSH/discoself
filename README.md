@@ -28,127 +28,31 @@ go get -u github.com/krishnassh/discoself
 Import the package into your project.
 
 ```go
-import discoself "github.com/krishnassh/discoself"
+import (
+	"fmt"
+	"log"
+
+	"github.com/krishnassh/discoself/discord"
+	"github.com/krishnassh/discoself/types"
+)
 ```
 
 Create a new client and connect to the Discord gateway.
 
 ```go
-client := discoself.NewClient("user-token", nil)
-if err := client.Connect(); err != nil {
-    log.Fatal(err)
+func main() {
+client := discord.NewClient("user-token", &types.DefaultConfig)
+
+client.AddHandler(types.GatewayEventReady, func(e *types.ReadyEventData) {
+fmt.Println("Logged in as:", e.User.Username)
+  }
 }
-defer client.Close()
 ```
 
 See [API Reference](docs/api.md) and Examples below for more detailed information.
 
 ## Examples
-
-**Sending a message:**
-
-```go
-client := discoself.NewClient("user-token", nil)
-client.Connect()
-defer client.Close()
-
-client.SendMessage("channel-id", "Hello from discoself!")
-```
-
-**Replying to a message:**
-
-```go
-client.SendMessageWithReply("channel-id", "Hello!", "message-id-to-reply-to")
-```
-
-**Editing and deleting messages:**
-
-```go
-client.EditMessage("channel-id", "message-id", "updated content")
-client.DeleteMessage("channel-id", "message-id")
-```
-
-**Adding a reaction:**
-
-```go
-client.AddReaction("channel-id", "message-id", "🐢")
-```
-
-**Sending a typing indicator:**
-
-```go
-client.SendTyping("channel-id")
-```
-
-**Sending a slash command:**
-
-```go
-client.SendSlashCommand("channel-id", "guild-id", command)
-```
-
-**Sending a slash command with options:**
-
-```go
-discord.SendSlashCommandWithOptions(gateway, "channel-id", "guild-id", command, []any{"option1", "option2"})
-```
-
-**Clicking a button:**
-
-```go
-discord.ClickButton(gateway, &messageEvent, "interaction-id")
-```
-
-**Fetching slash commands in a guild:**
-
-```go
-commands, err := discord.GetSlashCommands(gateway, "guild-id")
-```
-
-**Fetching your own slash commands:**
-
-```go
-commands, err := discord.GetUserSlashCommands(gateway)
-```
-
-**Listening for events:**
-
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
-
-	discoself "github.com/krishnassh/discoself"
-)
-
-func main() {
-	client := discoself.NewClient("user-token", nil)
-
-	client.AddHandler("MESSAGE_CREATE", func(data any) {
-		fmt.Println("new message:", data)
-	})
-
-	if err := client.Connect(); err != nil {
-		log.Fatal(err)
-	}
-	defer client.Close()
-
-	fmt.Println("running.")
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
-	<-stop
-}
-```
-
-**Fetching guild members:**
-
-```go
-client.GetMembers("guild-id", []string{"user-id-1", "user-id-2"})
-```
+a list of examples that demonstrate how to use this library can be found [here](examples/examples.md)
 
 ## API Reference
 
