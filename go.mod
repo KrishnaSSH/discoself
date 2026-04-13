@@ -1,6 +1,6 @@
 module github.com/krishnassh/discoself
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/fasthttp/websocket v1.5.12
@@ -11,8 +11,8 @@ require (
 require (
 	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/klauspost/compress v1.18.5 // indirect
-	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38 // indirect
+	github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	golang.org/x/net v0.50.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
 )
