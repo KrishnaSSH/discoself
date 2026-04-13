@@ -56,7 +56,7 @@ a list of examples that demonstrate how to use this library can be found [here](
 
 ## API Reference
 
-For full documentation of every function, type, and utility see [docs/api.md](docs/api.md).
+exported functions and types are documented check out [docs/api.md](docs/api.md).
 
 ## Contributing
 
