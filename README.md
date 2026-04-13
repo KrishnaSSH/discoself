@@ -4,6 +4,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/krishnassh/discoself)](https://goreportcard.com/report/github.com/krishnassh/discoself)
 ![Code Size](https://img.shields.io/github/languages/code-size/krishnassh/discoself)
 ![](assets/hero.png)
+
+discoself is a [Go](https://golang.org/) package that provides low level bindings to the [Discord](https://discord.com/) client API for selfbots. it is a hard fork of an unmaintained project [discordgo-self](https://github.com/QuartzWarrior/discordgo-self).
 ## Getting Started
 
 ### Installing
