@@ -16,25 +16,18 @@ func GetUser(gateway *Gateway, userID string) (types.User, error) {
 	defer fasthttp.ReleaseResponse(resp)
 
 	req.Header.SetMethod("GET")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.Set("x-discord-timezone", "America/Denver")
-	req.Header.Set("x-debug-options", "bugReporterEnabled")
-	req.Header.Set("accept", "*/*")
-	req.Header.Set("accept-language", "en-US,en;q=0.9")
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, "https://discord.com/channels/@me")
 	req.SetRequestURI("https://discord.com/api/v9/users/" + userID)
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
-		fmt.Println("Error:", err)
+	if err := requestClient.Do(req, resp); err != nil {
 		return types.User{}, err
+	}
+	if resp.StatusCode() != 200 {
+		return types.User{}, parseError(resp)
 	}
 
 	var user types.User
-	if err = json.Unmarshal(resp.Body(), &user); err != nil {
-		fmt.Println("Error:", err)
+	if err := json.Unmarshal(resp.Body(), &user); err != nil {
 		return types.User{}, err
 	}
 	return user, nil
@@ -48,25 +41,18 @@ func GetProfile(gateway *Gateway, userID string, guildID string) (types.User, er
 	defer fasthttp.ReleaseResponse(resp)
 
 	req.Header.SetMethod("GET")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.Set("x-discord-timezone", "America/Denver")
-	req.Header.Set("x-debug-options", "bugReporterEnabled")
-	req.Header.Set("accept", "*/*")
-	req.Header.Set("accept-language", "en-US,en;q=0.9")
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, fmt.Sprintf("https://discord.com/channels/%s", guildID))
 	req.SetRequestURI(fmt.Sprintf("https://discord.com/api/v9/users/%s/profile?guild_id=%s", userID, guildID))
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
-		fmt.Println("Error:", err)
+	if err := requestClient.Do(req, resp); err != nil {
 		return types.User{}, err
+	}
+	if resp.StatusCode() != 200 {
+		return types.User{}, parseError(resp)
 	}
 
 	var user types.User
-	if err = json.Unmarshal(resp.Body(), &user); err != nil {
-		fmt.Println("Error:", err)
+	if err := json.Unmarshal(resp.Body(), &user); err != nil {
 		return types.User{}, err
 	}
 	return user, nil
@@ -81,15 +67,11 @@ func ModifyUsername(gateway *Gateway, username string, password string) bool {
 
 	req.Header.SetMethod("PATCH")
 	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, "https://discord.com/channels/@me")
 	req.SetRequestURI("https://discord.com/api/v9/users/@me")
 	req.SetBodyString(fmt.Sprintf(`{"username":"%s","password":"%s"}`, username, password))
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
+	if err := requestClient.Do(req, resp); err != nil {
 		fmt.Println("Error:", err)
 		return false
 	}
@@ -105,15 +87,11 @@ func SetStatus(gateway *Gateway, status string) bool {
 
 	req.Header.SetMethod("PATCH")
 	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, "https://discord.com/channels/@me")
 	req.SetRequestURI("https://discord.com/api/v9/users/@me/settings")
 	req.SetBodyString(fmt.Sprintf(`{"status":"%s"}`, status))
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
+	if err := requestClient.Do(req, resp); err != nil {
 		fmt.Println("Error:", err)
 		return false
 	}
@@ -130,10 +108,7 @@ func SetCustomStatus(gateway *Gateway, text string, emoji string) bool {
 
 	req.Header.SetMethod("PATCH")
 	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, "https://discord.com/channels/@me")
 	req.SetRequestURI("https://discord.com/api/v9/users/@me/settings")
 
 	var body string
@@ -144,8 +119,7 @@ func SetCustomStatus(gateway *Gateway, text string, emoji string) bool {
 	}
 	req.SetBodyString(body)
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
+	if err := requestClient.Do(req, resp); err != nil {
 		fmt.Println("Error:", err)
 		return false
 	}
@@ -161,15 +135,11 @@ func ClearCustomStatus(gateway *Gateway) bool {
 
 	req.Header.SetMethod("PATCH")
 	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, "https://discord.com/channels/@me")
 	req.SetRequestURI("https://discord.com/api/v9/users/@me/settings")
 	req.SetBodyString(`{"custom_status":null}`)
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
+	if err := requestClient.Do(req, resp); err != nil {
 		fmt.Println("Error:", err)
 		return false
 	}
@@ -186,15 +156,11 @@ func SetNickname(gateway *Gateway, guildID string, nickname string) bool {
 
 	req.Header.SetMethod("PATCH")
 	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, fmt.Sprintf("https://discord.com/channels/%s", guildID))
 	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/members/@me")
 	req.SetBodyString(fmt.Sprintf(`{"nick":"%s"}`, nickname))
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
+	if err := requestClient.Do(req, resp); err != nil {
 		fmt.Println("Error:", err)
 		return false
 	}
@@ -210,15 +176,11 @@ func SendFriendRequest(gateway *Gateway, username string) bool {
 
 	req.Header.SetMethod("POST")
 	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, "https://discord.com/channels/@me")
 	req.SetRequestURI("https://discord.com/api/v9/users/@me/relationships")
 	req.SetBodyString(fmt.Sprintf(`{"username":"%s","discriminator":null}`, username))
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
+	if err := requestClient.Do(req, resp); err != nil {
 		fmt.Println("Error:", err)
 		return false
 	}
@@ -233,14 +195,10 @@ func RemoveFriend(gateway *Gateway, userID string) bool {
 	defer fasthttp.ReleaseResponse(resp)
 
 	req.Header.SetMethod("DELETE")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, "https://discord.com/channels/@me")
 	req.SetRequestURI("https://discord.com/api/v9/users/@me/relationships/" + userID)
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
+	if err := requestClient.Do(req, resp); err != nil {
 		fmt.Println("Error:", err)
 		return false
 	}
@@ -256,15 +214,11 @@ func BlockUser(gateway *Gateway, userID string) bool {
 
 	req.Header.SetMethod("PUT")
 	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, "https://discord.com/channels/@me")
 	req.SetRequestURI("https://discord.com/api/v9/users/@me/relationships/" + userID)
 	req.SetBodyString(`{"type":2}`)
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
+	if err := requestClient.Do(req, resp); err != nil {
 		fmt.Println("Error:", err)
 		return false
 	}

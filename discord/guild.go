@@ -16,21 +16,18 @@ func GetGuild(gateway *Gateway, guildID string) (types.Guild, error) {
 	defer fasthttp.ReleaseResponse(resp)
 
 	req.Header.SetMethod("GET")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, fmt.Sprintf("https://discord.com/channels/%s", guildID))
 	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID)
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
-		fmt.Println("Error:", err)
+	if err := requestClient.Do(req, resp); err != nil {
 		return types.Guild{}, err
+	}
+	if resp.StatusCode() != 200 {
+		return types.Guild{}, parseError(resp)
 	}
 
 	var guild types.Guild
-	if err = json.Unmarshal(resp.Body(), &guild); err != nil {
-		fmt.Println("Error:", err)
+	if err := json.Unmarshal(resp.Body(), &guild); err != nil {
 		return types.Guild{}, err
 	}
 	return guild, nil
@@ -44,21 +41,18 @@ func GetGuildChannels(gateway *Gateway, guildID string) ([]types.Channel, error)
 	defer fasthttp.ReleaseResponse(resp)
 
 	req.Header.SetMethod("GET")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, fmt.Sprintf("https://discord.com/channels/%s", guildID))
 	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/channels")
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
-		fmt.Println("Error:", err)
+	if err := requestClient.Do(req, resp); err != nil {
 		return nil, err
+	}
+	if resp.StatusCode() != 200 {
+		return nil, parseError(resp)
 	}
 
 	var channels []types.Channel
-	if err = json.Unmarshal(resp.Body(), &channels); err != nil {
-		fmt.Println("Error:", err)
+	if err := json.Unmarshal(resp.Body(), &channels); err != nil {
 		return nil, err
 	}
 	return channels, nil
@@ -72,21 +66,18 @@ func GetGuildRoles(gateway *Gateway, guildID string) ([]types.Role, error) {
 	defer fasthttp.ReleaseResponse(resp)
 
 	req.Header.SetMethod("GET")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, fmt.Sprintf("https://discord.com/channels/%s", guildID))
 	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/roles")
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
-		fmt.Println("Error:", err)
+	if err := requestClient.Do(req, resp); err != nil {
 		return nil, err
+	}
+	if resp.StatusCode() != 200 {
+		return nil, parseError(resp)
 	}
 
 	var roles []types.Role
-	if err = json.Unmarshal(resp.Body(), &roles); err != nil {
-		fmt.Println("Error:", err)
+	if err := json.Unmarshal(resp.Body(), &roles); err != nil {
 		return nil, err
 	}
 	return roles, nil
@@ -100,10 +91,7 @@ func KickMember(gateway *Gateway, guildID string, userID string) error {
 	defer fasthttp.ReleaseResponse(resp)
 
 	req.Header.SetMethod("DELETE")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, fmt.Sprintf("https://discord.com/channels/%s", guildID))
 	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/members/" + userID)
 
 	if err := requestClient.Do(req, resp); err != nil {
@@ -115,7 +103,8 @@ func KickMember(gateway *Gateway, guildID string, userID string) error {
 	return nil
 }
 
-// BanMember bans a member from a guild.
+// BanMember bans a member from a guild. deleteMessageSeconds sets how many
+// seconds of messages to delete (0 to 604800).
 func BanMember(gateway *Gateway, guildID string, userID string, deleteMessageSeconds int) error {
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
@@ -124,10 +113,7 @@ func BanMember(gateway *Gateway, guildID string, userID string, deleteMessageSec
 
 	req.Header.SetMethod("PUT")
 	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, fmt.Sprintf("https://discord.com/channels/%s", guildID))
 	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/bans/" + userID)
 	req.SetBodyString(fmt.Sprintf(`{"delete_message_seconds":%d}`, deleteMessageSeconds))
 
@@ -148,10 +134,7 @@ func UnbanMember(gateway *Gateway, guildID string, userID string) error {
 	defer fasthttp.ReleaseResponse(resp)
 
 	req.Header.SetMethod("DELETE")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, fmt.Sprintf("https://discord.com/channels/%s", guildID))
 	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/bans/" + userID)
 
 	if err := requestClient.Do(req, resp); err != nil {
@@ -171,11 +154,7 @@ func AddRole(gateway *Gateway, guildID string, userID string, roleID string) err
 	defer fasthttp.ReleaseResponse(resp)
 
 	req.Header.SetMethod("PUT")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("content-length", "0")
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, fmt.Sprintf("https://discord.com/channels/%s", guildID))
 	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/members/" + userID + "/roles/" + roleID)
 
 	if err := requestClient.Do(req, resp); err != nil {
@@ -195,10 +174,7 @@ func RemoveRole(gateway *Gateway, guildID string, userID string, roleID string) 
 	defer fasthttp.ReleaseResponse(resp)
 
 	req.Header.SetMethod("DELETE")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, fmt.Sprintf("https://discord.com/channels/%s", guildID))
 	req.SetRequestURI("https://discord.com/api/v9/guilds/" + guildID + "/members/" + userID + "/roles/" + roleID)
 
 	if err := requestClient.Do(req, resp); err != nil {
@@ -218,14 +194,10 @@ func LeaveGuild(gateway *Gateway, guildID string) bool {
 	defer fasthttp.ReleaseResponse(resp)
 
 	req.Header.SetMethod("DELETE")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, fmt.Sprintf("https://discord.com/channels/%s", guildID))
 	req.SetRequestURI("https://discord.com/api/v9/users/@me/guilds/" + guildID)
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
+	if err := requestClient.Do(req, resp); err != nil {
 		fmt.Println("Error:", err)
 		return false
 	}
@@ -241,15 +213,11 @@ func SetSlowmode(gateway *Gateway, channelID string, seconds int) bool {
 
 	req.Header.SetMethod("PATCH")
 	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", gateway.Selfbot.Token)
-	req.Header.Set("x-super-properties", GenerateSuperProperties(gateway))
-	req.Header.Set("x-discord-locale", gateway.Selfbot.User.Locale)
-	req.Header.SetUserAgent(gateway.Config.UserAgent)
+	setCommonHeaders(req, gateway, "https://discord.com/channels/@me")
 	req.SetRequestURI("https://discord.com/api/v9/channels/" + channelID)
 	req.SetBodyString(fmt.Sprintf(`{"rate_limit_per_user":%d}`, seconds))
 
-	err := requestClient.Do(req, resp)
-	if err != nil {
+	if err := requestClient.Do(req, resp); err != nil {
 		fmt.Println("Error:", err)
 		return false
 	}

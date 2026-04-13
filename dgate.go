@@ -42,6 +42,10 @@ func (client *Client) SendMessage(channelID string, content string) bool {
 	return discord.SendMessage(client.Gateway, channelID, content)
 }
 
+func (client *Client) GetChannel(channelID string) (types.Channel, error) {
+	return discord.GetChannel(client.Gateway, channelID)
+}
+
 func (client *Client) SendMessageWithReply(channelID string, content string, replyMessageID string) bool {
 	return discord.SendMessageWithReply(client.Gateway, channelID, content, replyMessageID)
 }
