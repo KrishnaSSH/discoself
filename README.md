@@ -48,11 +48,11 @@ Create a new client and connect to the Discord gateway.
 
 ```go
 func main() {
-client := discord.NewClient("user-token", &types.DefaultConfig)
+    client := discord.NewClient("user-token", &types.DefaultConfig)
 
-client.AddHandler(types.GatewayEventReady, func(e *types.ReadyEventData) {
-fmt.Println("Logged in as:", e.User.Username)
-  }
+    client.AddHandler(types.GatewayEventReady, func(e *types.ReadyEventData) {
+        fmt.Println("Logged in as:", e.User.Username)
+    })
 }
 ```
 

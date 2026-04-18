@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/fasthttp/websocket"
@@ -29,6 +30,7 @@ type Gateway struct {
 	superProperties   string // cached, super properties string to avoid re-encoding on every identify
 
 	heartbeatInterval time.Duration
+	mu                sync.Mutex // protects WebSocket writes
 }
 
 func CreateGateway(selfbot *Selfbot, config *types.Config) *Gateway {
@@ -36,16 +38,24 @@ func CreateGateway(selfbot *Selfbot, config *types.Config) *Gateway {
 		headers.Set("Host", "gateway.discord.gg")
 		headers.Set("User-Agent", config.UserAgent)
 	}
-	return &Gateway{CloseChan: make(chan struct{}), Selfbot: selfbot, GatewayURL: "wss://gateway.discord.gg/?encoding=json&v=" + config.ApiVersion, Config: config, ClientBuildNumber: clientBuildNumber}
+	return &Gateway{
+		CloseChan:         make(chan struct{}, 1), // buffered to avoid deadlock on Close()
+		Selfbot:           selfbot,
+		GatewayURL:        "wss://gateway.discord.gg/?encoding=json&v=" + config.ApiVersion,
+		Config:            config,
+		ClientBuildNumber: clientBuildNumber,
+	}
 }
 
 func (gateway *Gateway) Connect() error {
 	conn, resp, err := websocket.DefaultDialer.Dial(gateway.GatewayURL, headers)
 
+	if err != nil {
+		return err
+	}
+
 	if resp.StatusCode == 404 {
 		return fmt.Errorf("gateway not found")
-	} else if err != nil {
-		return err
 	}
 
 	gateway.Closed = false
@@ -252,10 +262,12 @@ func (gateway *Gateway) sendHeartbeat() error {
 	}
 
 	return gateway.sendMessage(payload)
-
 }
+
 func (gateway *Gateway) sendMessage(payload []byte) error {
+	gateway.mu.Lock()
 	err := gateway.Connection.WriteMessage(websocket.TextMessage, payload)
+	gateway.mu.Unlock()
 
 	if err != nil {
 		var closeError *websocket.CloseError
@@ -301,22 +313,19 @@ func (gateway *Gateway) readMessage() ([]byte, error) {
 		}
 
 		switch closeError.Code {
-		case websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseNoStatusReceived: // Websocket closed without any close code.
+		case websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseNoStatusReceived:
 			go gateway.reset()
-
 			return nil, err
 		default:
 			if closeEvent, ok := types.CloseEventCodes[closeError.Code]; ok {
-				if closeEvent.Reconnect { // If the session is re-connectable.
+				if closeEvent.Reconnect {
 					go gateway.reconnect()
 				} else {
 					gateway.Close()
-
 					return nil, fmt.Errorf("gateway closed with code %d: %s - %s", closeEvent.Code, closeEvent.Description, closeEvent.Explanation)
 				}
 			} else {
 				gateway.Close()
-
 				return nil, err
 			}
 		}
@@ -328,11 +337,14 @@ func (gateway *Gateway) readMessage() ([]byte, error) {
 func (gateway *Gateway) reset() error {
 	gateway.LastSeq = 0
 	gateway.SessionID = ""
-
 	return gateway.reconnect()
 }
 
 func (gateway *Gateway) reconnect() error {
+	select {
+	case gateway.CloseChan <- struct{}{}:
+	default:
+	}
 	return gateway.Connect()
 }
 
@@ -441,7 +453,11 @@ func (gateway *Gateway) Close() error {
 		return err
 	}
 
-	gateway.CloseChan <- struct{}{}
+	select {
+	case gateway.CloseChan <- struct{}{}:
+	default:
+	}
+
 	gateway.Connection.Close()
 	gateway.Connection = nil
 
